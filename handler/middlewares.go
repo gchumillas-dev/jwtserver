@@ -3,13 +3,14 @@ package handler
 import (
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gchumillas/ucms/manager"
 )
 
-func (env *Env) AuthMiddleware(next http.Handler, privateKey string) http.Handler {
+func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		signedToken := ""
 		items := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -25,6 +26,7 @@ func (env *Env) AuthMiddleware(next http.Handler, privateKey string) http.Handle
 		// u.ReadUserByToken(token)
 		claim := manager.UserClaim{}
 		jwt.ParseWithClaims(signedToken, &claim, func(t *jwt.Token) (interface{}, error) {
+			privateKey := os.Getenv("privateKey")
 			return []byte(privateKey), nil
 		})
 		log.Println(claim.UserID)

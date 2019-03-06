@@ -11,29 +11,19 @@ import (
 	"github.com/gchumillas/ucms/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/pelletier/go-toml"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-type dbConfig struct {
-	DB   string `toml:"dbname"`
-	User string `toml:"dbuser"`
-	Pass string `toml:"dbpass"`
-}
-
-type config struct {
-	APIVersion string `toml:"apiVersion"`
-	ServerAddr string `toml:"serverAddr"`
-	PrivateKey string `toml:"privateKey"`
-	Database   dbConfig
-}
-
 func main() {
-	conf := loadConfig("config.toml")
+	apiVersion := os.Getenv("apiVersion")
+	serverAddr := os.Getenv("serverAddr")
+	dbName := os.Getenv("dbName")
+	dbUser := os.Getenv("dbUser")
+	dbPass := os.Getenv("dbPass")
 
-	dbConf := conf.Database
-	dsName := fmt.Sprintf("%s:%s@/%s", dbConf.User, dbConf.Pass, dbConf.DB)
+	dsName := fmt.Sprintf("%s:%s@/%s", dbUser, dbPass, dbName)
 	db, err := sql.Open("mysql", dsName)
 	if err != nil {
 		panic(err.Error())
@@ -46,43 +36,22 @@ func main() {
 	}
 
 	env := &handler.Env{DB: db}
-	prefix := fmt.Sprintf("/%s", strings.TrimLeft(conf.APIVersion, "/"))
+	prefix := fmt.Sprintf("/%s", strings.TrimLeft(apiVersion, "/"))
 	r := mux.NewRouter()
 	public := r.PathPrefix(prefix).Subrouter()
 	private := r.PathPrefix(prefix).Subrouter()
-	private.Use(func(next http.Handler) http.Handler {
-		return env.AuthMiddleware(next, conf.PrivateKey)
-	})
+	private.Use(env.AuthMiddleware)
 
 	// authentication
-	public.HandleFunc("/sign/in", func(w http.ResponseWriter, r *http.Request) {
-		env.SignIn(w, r, conf.PrivateKey)
-	}).Methods("POST")
-	public.HandleFunc("/sign/up", env.SignUp)
+	public.HandleFunc("/sign/in", env.SignIn).Methods("POST")
+	public.HandleFunc("/sign/up", env.SignUp).Methods("POST")
 	private.HandleFunc("/sign/out", env.SignOut).Methods("POST")
 
-	log.Printf("Server started at port %s", conf.ServerAddr)
+	log.Printf("Server started at port %s", serverAddr)
 	log.Fatal(http.ListenAndServe(
-		conf.ServerAddr,
+		serverAddr,
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(false),
 		)(r),
 	))
-}
-
-func loadConfig(filename string) (conf config) {
-	conf = config{}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-
-	decoder := toml.NewDecoder(file)
-	err = decoder.Decode(&conf)
-	if err != nil {
-		panic(err)
-	}
-
-	return
 }

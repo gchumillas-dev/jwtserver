@@ -3,12 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gchumillas/ucms/manager"
 )
 
-func (env *Env) SignIn(w http.ResponseWriter, r *http.Request, privateKey string) {
+func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Username string
 		Password string
@@ -23,6 +24,7 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request, privateKey string
 
 	// NewToken(privateKey)
 	// u.GenerateToken()
+	privateKey := os.Getenv("privateKey")
 	claim := &manager.UserClaim{UserID: u.ID}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	signedToken, err := token.SignedString([]byte(privateKey))
