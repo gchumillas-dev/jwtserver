@@ -9,6 +9,7 @@ import (
 	"github.com/gchumillas/ucms/manager"
 )
 
+// SignIn handler.
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Username string
@@ -25,6 +26,7 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(u.NewToken(env.PrivateKey, env.Expiration))
 }
 
+// Home handler.
 func (env *Env) Home(w http.ResponseWriter, r *http.Request) {
 	u := getUser(r)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/gchumillas/ucms/manager"
 )
 
+// AuthMiddleware verifies that the user was successful authorized.
 func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := ""

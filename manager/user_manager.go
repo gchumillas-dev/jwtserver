@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User manages users.
 type User struct {
 	ID       string
 	Username string
@@ -37,6 +38,7 @@ func (user *User) NewToken(privateKey string, expiration time.Duration) string {
 	return token.New(privateKey, claims)
 }
 
+// ReadUser reads a user.
 func (user *User) ReadUser(db *sql.DB, ID string) (found bool) {
 	stmt, err := db.Prepare(`
 		select id, username
@@ -56,6 +58,7 @@ func (user *User) ReadUser(db *sql.DB, ID string) (found bool) {
 	return true
 }
 
+// ReadUserByCredentials reads a user by username and password.
 func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) (found bool) {
 	stmt, err := db.Prepare(`
 		select id, username, password
@@ -80,6 +83,7 @@ func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) 
 	return true
 }
 
+// ReadUserByToken reads a user by token.
 func (user *User) ReadUserByToken(db *sql.DB, privateKey, signedToken string) (found bool) {
 	claims := &userClaims{UserID: user.ID}
 	if _, err := token.Parse(privateKey, signedToken, claims); err != nil {
