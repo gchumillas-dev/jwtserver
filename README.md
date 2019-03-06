@@ -14,7 +14,7 @@ mysql> use mydb
 mysql> source dbschema.sql
 ```
 
-Then rename or copy `example.env` to `.env` and change the Token Database sections. After that you can now compile and execute the application:
+Then rename or copy `example.env` to `.env` and change the Token and the Database sections. After that you can now compile and execute the application:
 
 ```bash
 # compile and execute the application
