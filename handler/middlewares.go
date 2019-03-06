@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gchumillas/ucms/manager"
+	"github.com/gchumillas/jwtserver/manager"
 )
 
 // AuthMiddleware verifies that the user was successful authorized.

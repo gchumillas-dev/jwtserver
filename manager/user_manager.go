@@ -5,7 +5,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/gchumillas/ucms/token"
+	"github.com/gchumillas/jwtserver/token"
 	"golang.org/x/crypto/bcrypt"
 )
 

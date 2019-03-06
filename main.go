@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gchumillas/ucms/handler"
+	"github.com/gchumillas/jwtserver/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 

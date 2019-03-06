@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gchumillas/ucms/manager"
+	"github.com/gchumillas/jwtserver/manager"
 )
 
 // SignIn handler.

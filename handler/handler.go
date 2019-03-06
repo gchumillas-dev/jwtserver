@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gchumillas/ucms/manager"
+	"github.com/gchumillas/jwtserver/manager"
 )
 
 // Env contains common variables, such as the database access, etc.
