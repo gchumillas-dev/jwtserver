@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/gchumillas/ucms/manager"
 )
 
 // Env contains common variables, such as the database access, etc.
@@ -15,16 +17,25 @@ type Env struct {
 	PrivateKey string
 }
 
+// Context keys.
+type contextKey string
+
+const contextUserKey = contextKey("context-user-key")
+
+// Common HTTP status errors.
 type httpStatus struct {
 	code int
 	msg  string
 }
 
-// Common http errors.
 var (
 	docNotFoundError  = httpStatus{404, "Document not found."}
 	unauthorizedError = httpStatus{401, "Not authorized."}
 )
+
+func getUser(r *http.Request) *manager.User {
+	return r.Context().Value(contextUserKey).(*manager.User)
+}
 
 func httpError(w http.ResponseWriter, status httpStatus) {
 	http.Error(w, status.msg, status.code)

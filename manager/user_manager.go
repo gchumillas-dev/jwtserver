@@ -4,16 +4,18 @@ import (
 	"database/sql"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	tk "github.com/gchumillas/ucms/token"
+	"github.com/gchumillas/ucms/token"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO: remove Password field
 type User struct {
 	ID       string
 	Username string
 	Password []byte
 }
 
+// TODO: make private
 type UserClaims struct {
 	UserID string
 	jwt.StandardClaims
@@ -27,6 +29,12 @@ func NewUser(userID ...string) *User {
 	}
 
 	return &User{ID: id}
+}
+
+func (user *User) NewToken(privateKey string) string {
+	claims := UserClaims{UserID: user.ID}
+
+	return token.New(privateKey, claims)
 }
 
 // CreateUser creates a user.
@@ -43,6 +51,22 @@ func (user *User) CreateUser(db *sql.DB) {
 	if _, err := stmt.Exec(user.Username, pwd); err != nil {
 		panic(err)
 	}
+}
+
+func (user *User) ReadUser(db *sql.DB, ID string) error {
+	stmt, err := db.Prepare(`
+		select id, username
+		from user where id = ?`)
+	if err != nil {
+		panic(err)
+	}
+	defer stmt.Close()
+
+	if err := stmt.QueryRow(ID).Scan(&user.ID, &user.Username); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) error {
@@ -66,7 +90,12 @@ func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) 
 	return nil
 }
 
-func (user *User) ReadUserByToken(db *sql.DB, privateKey, token string) {
+func (user *User) ReadUserByToken(db *sql.DB, privateKey, signedToken string) {
 	claims := &UserClaims{UserID: user.ID}
-	tk.Parse(privateKey, token, claims)
+	_, err := token.Parse(privateKey, signedToken, claims)
+	if err != nil {
+		panic(err)
+	}
+
+	user.ReadUser(db, claims.UserID)
 }

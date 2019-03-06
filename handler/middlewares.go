@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -23,6 +24,7 @@ func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 		u := manager.NewUser()
 		u.ReadUserByToken(env.DB, env.PrivateKey, token)
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), contextUserKey, u)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

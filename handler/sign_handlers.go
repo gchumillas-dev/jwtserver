@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gchumillas/ucms/manager"
-	"github.com/gchumillas/ucms/token"
 )
 
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -21,10 +20,7 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims := manager.UserClaims{UserID: u.ID}
-	token := token.New(env.PrivateKey, claims)
-
-	json.NewEncoder(w).Encode(token)
+	json.NewEncoder(w).Encode(u.NewToken(env.PrivateKey))
 }
 
 func (env *Env) SignOut(w http.ResponseWriter, r *http.Request) {
