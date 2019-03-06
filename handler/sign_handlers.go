@@ -7,7 +7,6 @@ import (
 	"github.com/gchumillas/ucms/manager"
 )
 
-// TODO: prevent from logged users to sign in
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Username string
@@ -22,12 +21,4 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(u.NewToken(env.PrivateKey))
-}
-
-func (env *Env) SignOut(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (env *Env) SignUp(w http.ResponseWriter, r *http.Request) {
-
 }

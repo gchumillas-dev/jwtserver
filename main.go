@@ -39,17 +39,15 @@ func main() {
 	env := &handler.Env{DB: db, PrivateKey: privateKey}
 	prefix := fmt.Sprintf("/%s", strings.TrimLeft(apiVersion, "/"))
 	r := mux.NewRouter()
-	public := r.PathPrefix(prefix).Subrouter()
-	private := r.PathPrefix(prefix).Subrouter()
-	private.Use(env.AuthMiddleware)
 
-	// auth routes
+	// public routes
+	public := r.PathPrefix(prefix).Subrouter()
 	public.HandleFunc("/sign/in", env.SignIn).Methods("POST")
-	public.HandleFunc("/sign/up", env.SignUp).Methods("POST")
-	private.HandleFunc("/sign/out", env.SignOut).Methods("POST")
 
 	// private routes
+	private := r.PathPrefix(prefix).Subrouter()
 	private.HandleFunc("/home", env.Home).Methods("GET")
+	private.Use(env.AuthMiddleware)
 
 	log.Printf("Server started at port %s", serverAddr)
 	log.Fatal(http.ListenAndServe(
