@@ -8,15 +8,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO: remove Password field
 type User struct {
 	ID       string
 	Username string
-	Password []byte
 }
 
-// TODO: make private
-type UserClaims struct {
+type userClaims struct {
 	UserID string
 	jwt.StandardClaims
 }
@@ -32,13 +29,13 @@ func NewUser(userID ...string) *User {
 }
 
 func (user *User) NewToken(privateKey string) string {
-	claims := UserClaims{UserID: user.ID}
+	claims := userClaims{UserID: user.ID}
 
 	return token.New(privateKey, claims)
 }
 
 // CreateUser creates a user.
-func (user *User) CreateUser(db *sql.DB) {
+func (user *User) CreateUser(db *sql.DB, password string) {
 	stmt, err := db.Prepare(`
 		insert into user(username, password)
 		values(?, ?)`)
@@ -47,13 +44,13 @@ func (user *User) CreateUser(db *sql.DB) {
 	}
 	defer stmt.Close()
 
-	pwd, err := bcrypt.GenerateFromPassword(user.Password, bcrypt.DefaultCost)
+	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if _, err := stmt.Exec(user.Username, pwd); err != nil {
 		panic(err)
 	}
 }
 
-func (user *User) ReadUser(db *sql.DB, ID string) error {
+func (user *User) ReadUser(db *sql.DB, ID string) (found bool) {
 	stmt, err := db.Prepare(`
 		select id, username
 		from user where id = ?`)
@@ -62,14 +59,17 @@ func (user *User) ReadUser(db *sql.DB, ID string) error {
 	}
 	defer stmt.Close()
 
-	if err := stmt.QueryRow(ID).Scan(&user.ID, &user.Username); err != nil {
-		return err
+	switch err := stmt.QueryRow(ID).Scan(&user.ID, &user.Username); {
+	case err == sql.ErrNoRows:
+		return false
+	case err != nil:
+		panic(err)
 	}
 
-	return nil
+	return true
 }
 
-func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) error {
+func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) (found bool) {
 	stmt, err := db.Prepare(`
 		select id, username, password
 		from user where username = ?`)
@@ -78,24 +78,27 @@ func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) 
 	}
 	defer stmt.Close()
 
-	if err := stmt.QueryRow(uname).
-		Scan(&user.ID, &user.Username, &user.Password); err != nil {
-		return err
+	var hashedPassword []byte
+	switch err := stmt.QueryRow(uname).Scan(&user.ID, &user.Username, &hashedPassword); {
+	case err == sql.ErrNoRows:
+		return false
+	case err != nil:
+		panic(err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(upass)); err != nil {
-		return err
+	if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(upass)); err != nil {
+		return false
 	}
 
-	return nil
+	return true
 }
 
-func (user *User) ReadUserByToken(db *sql.DB, privateKey, signedToken string) {
-	claims := &UserClaims{UserID: user.ID}
+func (user *User) ReadUserByToken(db *sql.DB, privateKey, signedToken string) (found bool) {
+	claims := &userClaims{UserID: user.ID}
 	_, err := token.Parse(privateKey, signedToken, claims)
 	if err != nil {
 		panic(err)
 	}
 
-	user.ReadUser(db, claims.UserID)
+	return user.ReadUser(db, claims.UserID)
 }

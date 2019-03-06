@@ -22,7 +22,10 @@ func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		u := manager.NewUser()
-		u.ReadUserByToken(env.DB, env.PrivateKey, token)
+		if !u.ReadUserByToken(env.DB, env.PrivateKey, token) {
+			httpError(w, unauthorizedError)
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), contextUserKey, u)
 		next.ServeHTTP(w, r.WithContext(ctx))

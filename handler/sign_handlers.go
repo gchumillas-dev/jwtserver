@@ -7,6 +7,7 @@ import (
 	"github.com/gchumillas/ucms/manager"
 )
 
+// TODO: prevent from logged users to sign in
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Username string
@@ -15,7 +16,7 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	parseBody(w, r, &body)
 
 	u := manager.NewUser()
-	if err := u.ReadUserByCredentials(env.DB, body.Username, body.Password); err != nil {
+	if !u.ReadUserByCredentials(env.DB, body.Username, body.Password) {
 		httpError(w, docNotFoundError)
 		return
 	}
