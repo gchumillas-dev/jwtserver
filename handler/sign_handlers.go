@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 
 	"github.com/gchumillas/ucms/manager"
 	"github.com/gchumillas/ucms/token"
@@ -22,9 +21,8 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	privateKey := os.Getenv("privateKey")
 	claims := manager.UserClaims{UserID: u.ID}
-	signedToken := token.New(privateKey, claims)
+	signedToken := token.New(env.PrivateKey, claims)
 
 	json.NewEncoder(w).Encode(signedToken)
 }

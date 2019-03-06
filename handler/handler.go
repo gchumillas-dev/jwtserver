@@ -11,7 +11,8 @@ import (
 
 // Env contains common variables, such as the database access, etc.
 type Env struct {
-	DB *sql.DB
+	DB         *sql.DB
+	PrivateKey string
 }
 
 type httpStatus struct {

@@ -19,6 +19,7 @@ import (
 func main() {
 	apiVersion := os.Getenv("apiVersion")
 	serverAddr := os.Getenv("serverAddr")
+	privateKey := os.Getenv("privateKey")
 	dbName := os.Getenv("dbName")
 	dbUser := os.Getenv("dbUser")
 	dbPass := os.Getenv("dbPass")
@@ -35,7 +36,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	env := &handler.Env{DB: db}
+	env := &handler.Env{DB: db, PrivateKey: privateKey}
 	prefix := fmt.Sprintf("/%s", strings.TrimLeft(apiVersion, "/"))
 	r := mux.NewRouter()
 	public := r.PathPrefix(prefix).Subrouter()

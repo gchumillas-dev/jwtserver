@@ -3,7 +3,6 @@ package handler
 import (
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gchumillas/ucms/manager"
@@ -22,9 +21,8 @@ func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		privateKey := os.Getenv("privateKey")
 		u := manager.NewUser()
-		u.ReadUserByToken(env.DB, privateKey, token)
+		u.ReadUserByToken(env.DB, env.PrivateKey, token)
 		log.Println(token)
 
 		next.ServeHTTP(w, r)
