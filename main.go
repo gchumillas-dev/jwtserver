@@ -42,10 +42,13 @@ func main() {
 	private := r.PathPrefix(prefix).Subrouter()
 	private.Use(env.AuthMiddleware)
 
-	// authentication
+	// auth routes
 	public.HandleFunc("/sign/in", env.SignIn).Methods("POST")
 	public.HandleFunc("/sign/up", env.SignUp).Methods("POST")
 	private.HandleFunc("/sign/out", env.SignOut).Methods("POST")
+
+	// private routes
+	private.HandleFunc("/home", env.Home).Methods("GET")
 
 	log.Printf("Server started at port %s", serverAddr)
 	log.Fatal(http.ListenAndServe(

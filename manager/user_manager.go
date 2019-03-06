@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	tk "github.com/gchumillas/ucms/token"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -13,7 +14,7 @@ type User struct {
 	Password []byte
 }
 
-type UserClaim struct {
+type UserClaims struct {
 	UserID string
 	jwt.StandardClaims
 }
@@ -44,7 +45,7 @@ func (user *User) CreateUser(db *sql.DB) {
 	}
 }
 
-func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass []byte) error {
+func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) error {
 	stmt, err := db.Prepare(`
 		select id, username, password
 		from user where username = ?`)
@@ -58,9 +59,14 @@ func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass []byte) 
 		return err
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, upass); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(upass)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (user *User) ReadUserByToken(db *sql.DB, privateKey, token string) {
+	claims := &UserClaims{UserID: user.ID}
+	tk.Parse(privateKey, token, claims)
 }

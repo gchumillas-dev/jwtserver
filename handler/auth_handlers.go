@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gchumillas/ucms/manager"
+	"github.com/gchumillas/ucms/token"
 )
 
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -17,20 +17,14 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	parseBody(w, r, &body)
 
 	u := manager.NewUser()
-	if err := u.ReadUserByCredentials(env.DB, body.Username, []byte(body.Password)); err != nil {
+	if err := u.ReadUserByCredentials(env.DB, body.Username, body.Password); err != nil {
 		httpError(w, docNotFoundError)
 		return
 	}
 
-	// NewToken(privateKey)
-	// u.GenerateToken()
 	privateKey := os.Getenv("privateKey")
-	claim := &manager.UserClaim{UserID: u.ID}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	signedToken, err := token.SignedString([]byte(privateKey))
-	if err != nil {
-		panic(err)
-	}
+	claims := manager.UserClaims{UserID: u.ID}
+	signedToken := token.New(privateKey, claims)
 
 	json.NewEncoder(w).Encode(signedToken)
 }
