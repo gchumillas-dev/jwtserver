@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gchumillas/ucms/handler"
 	"github.com/gorilla/handlers"
@@ -20,6 +21,7 @@ func main() {
 	apiVersion := os.Getenv("apiVersion")
 	serverAddr := os.Getenv("serverAddr")
 	privateKey := os.Getenv("privateKey")
+	expiration, _ := time.ParseDuration(os.Getenv("expiration"))
 	dbName := os.Getenv("dbName")
 	dbUser := os.Getenv("dbUser")
 	dbPass := os.Getenv("dbPass")
@@ -27,16 +29,19 @@ func main() {
 	dsName := fmt.Sprintf("%s:%s@/%s", dbUser, dbPass, dbName)
 	db, err := sql.Open("mysql", dsName)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
-	env := &handler.Env{DB: db, PrivateKey: privateKey}
+	env := &handler.Env{
+		DB:         db,
+		PrivateKey: privateKey,
+		Expiration: expiration}
 	prefix := fmt.Sprintf("/%s", strings.TrimLeft(apiVersion, "/"))
 	r := mux.NewRouter()
 

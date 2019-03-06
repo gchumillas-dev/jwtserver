@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/gchumillas/ucms/manager"
 )
@@ -15,6 +16,7 @@ import (
 type Env struct {
 	DB         *sql.DB
 	PrivateKey string
+	Expiration time.Duration
 }
 
 // Context keys.

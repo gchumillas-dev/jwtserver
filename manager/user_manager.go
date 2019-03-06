@@ -2,6 +2,7 @@ package manager
 
 import (
 	"database/sql"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gchumillas/ucms/token"
@@ -28,8 +29,10 @@ func NewUser(userID ...string) *User {
 	return &User{ID: id}
 }
 
-func (user *User) NewToken(privateKey string) string {
+// NewToken creates a new token based on a privateKey.
+func (user *User) NewToken(privateKey string, expiration time.Duration) string {
 	claims := userClaims{UserID: user.ID}
+	claims.ExpiresAt = time.Now().Add(expiration).Unix()
 
 	return token.New(privateKey, claims)
 }
@@ -79,9 +82,8 @@ func (user *User) ReadUserByCredentials(db *sql.DB, uname string, upass string) 
 
 func (user *User) ReadUserByToken(db *sql.DB, privateKey, signedToken string) (found bool) {
 	claims := &userClaims{UserID: user.ID}
-	_, err := token.Parse(privateKey, signedToken, claims)
-	if err != nil {
-		panic(err)
+	if _, err := token.Parse(privateKey, signedToken, claims); err != nil {
+		return false
 	}
 
 	return user.ReadUser(db, claims.UserID)

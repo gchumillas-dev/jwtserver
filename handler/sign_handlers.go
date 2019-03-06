@@ -7,6 +7,7 @@ import (
 	"github.com/gchumillas/ucms/manager"
 )
 
+// TODO: move this to handlers.go
 func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Username string
@@ -20,5 +21,5 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(u.NewToken(env.PrivateKey))
+	json.NewEncoder(w).Encode(u.NewToken(env.PrivateKey, env.Expiration))
 }
