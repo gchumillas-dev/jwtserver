@@ -34,22 +34,6 @@ func (user *User) NewToken(privateKey string) string {
 	return token.New(privateKey, claims)
 }
 
-// CreateUser creates a user.
-func (user *User) CreateUser(db *sql.DB, password string) {
-	stmt, err := db.Prepare(`
-		insert into user(username, password)
-		values(?, ?)`)
-	if err != nil {
-		panic(err)
-	}
-	defer stmt.Close()
-
-	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if _, err := stmt.Exec(user.Username, pwd); err != nil {
-		panic(err)
-	}
-}
-
 func (user *User) ReadUser(db *sql.DB, ID string) (found bool) {
 	stmt, err := db.Prepare(`
 		select id, username
