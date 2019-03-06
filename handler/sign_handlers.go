@@ -22,9 +22,9 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims := manager.UserClaims{UserID: u.ID}
-	signedToken := token.New(env.PrivateKey, claims)
+	token := token.New(env.PrivateKey, claims)
 
-	json.NewEncoder(w).Encode(signedToken)
+	json.NewEncoder(w).Encode(token)
 }
 
 func (env *Env) SignOut(w http.ResponseWriter, r *http.Request) {
