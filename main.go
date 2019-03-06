@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gchumillas/ucms/handler"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pelletier/go-toml"
@@ -23,6 +24,8 @@ type dbConfig struct {
 
 type config struct {
 	APIVersion string `toml:"apiVersion"`
+	ServerAddr string `toml:"serverAddr"`
+	PrivateKey string `toml:"privateKey"`
 	Database   dbConfig
 }
 
@@ -42,19 +45,25 @@ func main() {
 		panic(err.Error())
 	}
 
+	env := &handler.Env{DB: db}
 	prefix := fmt.Sprintf("/%s", strings.TrimLeft(conf.APIVersion, "/"))
 	r := mux.NewRouter()
-	s := r.PathPrefix(prefix).Subrouter()
+	public := r.PathPrefix(prefix).Subrouter()
+	private := r.PathPrefix(prefix).Subrouter()
+	private.Use(func(next http.Handler) http.Handler {
+		return env.AuthMiddleware(next, conf.PrivateKey)
+	})
 
-	// authentication (public routes)
-	auth := s.PathPrefix("/auth").Subrouter()
-	auth.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-	}).Methods("GET")
+	// authentication
+	public.HandleFunc("/sign/in", func(w http.ResponseWriter, r *http.Request) {
+		env.SignIn(w, r, conf.PrivateKey)
+	}).Methods("POST")
+	public.HandleFunc("/sign/up", env.SignUp)
+	private.HandleFunc("/sign/out", env.SignOut).Methods("POST")
 
-	serverAddr := "localhost:8080"
-	log.Printf("Server started at port %v", serverAddr)
+	log.Printf("Server started at port %s", conf.ServerAddr)
 	log.Fatal(http.ListenAndServe(
-		serverAddr,
+		conf.ServerAddr,
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(false),
 		)(r),
