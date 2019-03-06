@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -23,7 +22,6 @@ func (env *Env) AuthMiddleware(next http.Handler) http.Handler {
 
 		u := manager.NewUser()
 		u.ReadUserByToken(env.DB, env.PrivateKey, token)
-		log.Println(token)
 
 		next.ServeHTTP(w, r)
 	})
