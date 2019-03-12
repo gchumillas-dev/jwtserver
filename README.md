@@ -1,6 +1,6 @@
 # JWT authentication system
 
-A very simple authentication system based on JWT (JavaWebTokens).
+A very simple authentication system based on JWT (JSON Web Tokens).
 
 # Installation
 
