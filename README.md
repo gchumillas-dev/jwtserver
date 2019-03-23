@@ -23,7 +23,4 @@ $ ./jwtserver
 2019/03/06 21:57:24 Server started at port localhost:8080
 ```
 
-You can now test this application from Postman:  
-https://documenter.getpostman.com/view/412470/S11PpFqg
-
 And that's all Folks!
