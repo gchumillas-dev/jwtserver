@@ -54,11 +54,16 @@ func main() {
 	private.HandleFunc("/home", env.Home).Methods("GET")
 	private.Use(env.AuthMiddleware)
 
+	// CORS support
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
+
 	log.Printf("Server started at port %s", serverAddr)
 	log.Fatal(http.ListenAndServe(
 		serverAddr,
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(false),
-		)(r),
+		)(handlers.CORS(headersOk, originsOk, methodsOk)(r)),
 	))
 }
