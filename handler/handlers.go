@@ -19,7 +19,7 @@ func (env *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	u := manager.NewUser()
 	if !u.ReadUserByCredentials(env.DB, body.Username, body.Password) {
-		httpError(w, docNotFoundError)
+		httpError(w, unauthorizedError)
 		return
 	}
 
